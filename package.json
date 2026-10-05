@@ -282,7 +282,7 @@
     "happy-dom": "^20.14.0",
     "knip": "^6.34.0",
     "oxlint": "^1.81.0",
-    "protobufjs": "7.6.6",
+    "protobufjs": "8.8.0",
     "tailwindcss": "^4.3.3",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
