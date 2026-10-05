@@ -21,6 +21,7 @@
  *   otherwise working connection.
  */
 
+import { safeDecodeURIComponent } from "@/lib/connection-string-parser";
 import { BaseDatabaseProvider } from "@/lib/db/base-provider";
 import {
   applySourceBound,
@@ -507,7 +508,7 @@ export class CouchbaseProvider extends BaseDatabaseProvider {
     try {
       const url = new URL(this.config.connectionString ?? "");
       if (url.protocol !== "couchbase:" && url.protocol !== "couchbases:") return "";
-      return decodeURIComponent(url.pathname.split("/")[1] ?? "");
+      return safeDecodeURIComponent(url.pathname.split("/")[1] ?? "");
     } catch {
       return "";
     }

@@ -473,6 +473,7 @@ self-signed, so only the SSL panel turns verification on.
 A connection in **Connection String** mode has its hostname lifted out for the transport.
 When the separate Bucket (`database`) field is empty, the provider also reads and URL-decodes the
 first path segment as the bucket: `couchbase://localhost/travel%2Dsample` selects `travel-sample`.
+A `%` that does not start a valid escape is kept verbatim, as Paste URL keeps it, because a bucket name may contain one: `couchbase://localhost/100%` selects `100%`.
 An explicit Bucket field wins. The resolved bucket is used for management requests and the SQL++
 query context alike; a URL without a bucket path still requires the field to be filled in.
 The URL's port is deliberately not used, because a `couchbase://` URL from an

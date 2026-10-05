@@ -431,20 +431,29 @@ describe("CouchbaseProvider validation", () => {
   });
 
   test.each([
-    undefined,
-    "couchbase://localhost",
-    "couchbase://localhost/",
-    "not a url",
-    "couchbase://localhost/%ZZ",
-    "file:travel",
-  ])("rejects a missing or malformed URI bucket (%s) with a configuration error", (connectionString) => {
-    expect(() => new CouchbaseProvider(makeConnection({ database: undefined, connectionString }))).toThrow(
-      DatabaseConfigError,
-    );
-    expect(() => new CouchbaseProvider(makeConnection({ database: undefined, connectionString }))).toThrow(
-      /URL path or.*database/,
-    );
+    ["couchbase://localhost/100%", "100%"],
+    ["couchbase://localhost/%ZZ", "%ZZ"],
+  ])("keeps a literal %% in the URI bucket %s verbatim", async (connectionString, bucket) => {
+    const provider = await connectProvider({ database: undefined, connectionString });
+    await provider.getStorageStats();
+    await provider.query("SELECT 1");
+
+    expect(manageUrls.some((url) => url.endsWith(`/buckets/${encodeURIComponent(bucket)}`))).toBe(true);
+    expect(bodyOf("SELECT 1").query_context).toBe(`default:\`${bucket}\``);
+    await provider.disconnect();
   });
+
+  test.each([undefined, "couchbase://localhost", "couchbase://localhost/", "not a url", "file:travel"])(
+    "rejects a missing or malformed URI bucket (%s) with a configuration error",
+    (connectionString) => {
+      expect(() => new CouchbaseProvider(makeConnection({ database: undefined, connectionString }))).toThrow(
+        DatabaseConfigError,
+      );
+      expect(() => new CouchbaseProvider(makeConnection({ database: undefined, connectionString }))).toThrow(
+        /URL path or.*database/,
+      );
+    },
+  );
 
   test("accepts a connection string instead of a host and targets its hostname", async () => {
     const provider = await connectProvider({
