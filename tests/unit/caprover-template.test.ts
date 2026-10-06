@@ -194,9 +194,9 @@ describe.each(TEMPLATES)("$name: what this repository requires of the template",
   });
 
   test("the version moves in both places at once", () => {
-    // README: "The version appears twice in that file, the defaultValue of $$cap_version and
-    // the example inside its description, and both must move together." Nothing checked that,
-    // so an upgrade could leave the example naming the release before it.
+    // The version appears twice in each template, the defaultValue of $$cap_version and the
+    // example inside its description. chart:bump moves both (parseCaproverVersions in
+    // scripts/sync-chart-version.mjs); this keeps a hand edit from leaving the example behind.
     const pinned = versionVariable?.defaultValue ?? "";
     expect(pinned).toBeTruthy();
     expect(versionVariable?.description ?? "").toContain(`Example - ${pinned}.`);
@@ -360,6 +360,12 @@ describe.each(TEMPLATES)("$name: what this repository requires of the template",
     // not, so the whole class closes here.
     const nonAscii = [...RAW].filter((character) => character.codePointAt(0)! > 0x7f);
     expect(nonAscii).toEqual([]);
+  });
+
+  test("the description fits the catalog's 200 characters", () => {
+    // scripts/validate_apps.js in caprover/one-click-apps fails a description longer than 200
+    // characters, so a longer one would only show up as a red check on the catalog PR.
+    expect((template.caproverOneClickApp?.description ?? "").length).toBeLessThanOrEqual(200);
   });
 
   test("no service binds a host path, except the discovery companion's Docker socket", () => {
@@ -573,6 +579,15 @@ describe("what only the auto-connect variant carries", () => {
     const description = template.caproverOneClickApp?.description ?? "";
     expect(description).toContain("Docker socket");
     expect(RAW).not.toMatch(/\bengines\b/i);
+  });
+
+  test("the description names the same databases as instructions.start", () => {
+    // The catalog card shows only the description, and it named five of the families the
+    // start text lists (CodeRabbit on caprover/one-click-apps#1346). The list is read from the
+    // start text, so a family added there and not here fails.
+    const list = flat(instructionsStart).match(/connects itself to the (.+?) databases/)?.[1] ?? "";
+    expect(list.split(", ").length).toBeGreaterThan(2);
+    expect(template.caproverOneClickApp?.description ?? "").toContain(`${list} databases`);
   });
 
   test("instructions.end carries the plain template's sign-in, credentials and cookie text word for word", () => {
